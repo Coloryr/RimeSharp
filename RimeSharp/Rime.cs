@@ -165,7 +165,24 @@ public static partial class Rime
     public static partial void RimeClearComposition(IntPtr session_id);
 
     [DllImport(LibName)]
-    public static extern unsafe bool RimeGetCommit(IntPtr session_id, ref RimeCommit ptr);
+    private static extern unsafe bool RimeGetCommit(IntPtr session_id, IntPtr ptr);
+
+    public static bool RimeGetCommit(IntPtr session_id, out RimeCommit commit)
+    {
+        var context1 = new RimeCommit();
+        context1.data_size = Marshal.SizeOf(context1) - sizeof(int);
+        IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(context1));
+        Marshal.StructureToPtr(context1, pnt, false);
+        var res = RimeGetCommit(session_id, ptr: pnt);
+        commit = Marshal.PtrToStructure<RimeCommit>(pnt);
+        if (res)
+        {
+            RimeFreeCommit(pnt);
+        }
+
+        Marshal.FreeHGlobal(pnt);
+        return res;
+    }
 
     [LibraryImport(LibName)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -176,7 +193,7 @@ public static partial class Rime
 
     public static bool RimeGetContext(IntPtr session_id, out RimeContext context)
     {
-        var context1 = new RimeContext();
+        var context1 = new RimeContextHelper.RimeContextIn();
         context1.data_size = Marshal.SizeOf(context1) - sizeof(int);
         IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(context1));
         Marshal.StructureToPtr(context1, pnt, false);
@@ -271,7 +288,7 @@ public static partial class Rime
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool RimeSelectSchema(IntPtr session_id, string schema_id);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     private static extern bool RimeCandidateListBegin(IntPtr session_id, out IntPtr ptr);
 
     public static bool RimeCandidateListBegin(IntPtr session_id, out RimeCandidateListIterator iterator)
@@ -288,24 +305,33 @@ public static partial class Rime
         return res;
     }
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern bool RimeCandidateListNext(IntPtr iterator);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern void RimeCandidateListEnd(IntPtr iterator);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern bool RimeCandidateListFromIndex(IntPtr session_id, ref IntPtr iterator, int index);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern bool RimeSelectCandidate(IntPtr session_id, ulong index);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern bool RimeSelectCandidateOnCurrentPage(IntPtr session_id, ulong index);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern bool RimeDeleteCandidate(IntPtr session_id, ulong index);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName)]
     public static extern bool RimeDeleteCandidateOnCurrentPage(IntPtr session_id, ulong index);
+
+    [DllImport(LibName)]
+    public static extern bool RimeHighlightCandidateOnCurrentPage(IntPtr session_id, ulong index);
+
+    [DllImport(LibName)]
+    public static extern bool RimeHighlightCandidate(IntPtr session_id, ulong index);
+
+    [DllImport(LibName)]
+    public static extern bool RimeChangePage(IntPtr session_id, bool backward);
 }

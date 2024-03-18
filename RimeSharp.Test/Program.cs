@@ -97,15 +97,12 @@ internal class Program
             }
             else
             {
-                var commit = new RimeCommit();
-                commit.data_size = Marshal.SizeOf(commit) - sizeof(int);
                 var status = new RimeStatus();
                 status.data_size = Marshal.SizeOf(status) - sizeof(int);
 
-                if (Rime.RimeGetCommit(session, ref commit))
+                if (Rime.RimeGetCommit(session, out var  commit))
                 {
                     Console.WriteLine("commit: " + commit.text);
-                    Rime.RimeFreeStatus(ref status);
                 }
 
                 if (Rime.RimeGetStatus(session, ref status))
@@ -117,6 +114,8 @@ internal class Program
                 {
                     PrintContext(context);
                 }
+
+                Rime.RimeHighlightCandidate(session, 1);
             }
         }
     }
