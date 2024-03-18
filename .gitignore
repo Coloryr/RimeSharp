@@ -1,0 +1,10 @@
+
+*.cache
+
+obj
+.vs
+bin
+build_out
+publish
+*.pubxml.user
+*.csproj.user
