@@ -9,6 +9,7 @@ namespace RimeSharp.Helper;
 
 internal class RimeContextHelper
 {
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct RimeContextIn
     {
         public int data_size;
@@ -21,6 +22,7 @@ internal class RimeContextHelper
         public IntPtr select_labels;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct RimeMenuIn
     {
         public int page_size;
@@ -38,7 +40,6 @@ internal class RimeContextHelper
 
     public static RimeContext MarshalFromIntPtr(IntPtr ptr)
     {
-        // 首先，将ptr指向的内容封送到RimeSchemaList结构体
         var list = Marshal.PtrToStructure<RimeContextIn>(ptr);
 
         var context = new RimeContext

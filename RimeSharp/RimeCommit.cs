@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace RimeSharp;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct RimeCommit
 {
     public int data_size;

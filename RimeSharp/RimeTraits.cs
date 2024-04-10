@@ -1,5 +1,8 @@
 ﻿namespace RimeSharp;
 
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Sequential)]
 public unsafe struct RimeTraits
 {
     public int data_size;

@@ -81,41 +81,38 @@ internal class Program
     {
         Rime.Init(AppContext.BaseDirectory, Handel);
 
-        Rime.RimeGetSchemaList(out var list);
+        Rime.GetSchemaList(out var list);
 
-        var session = Rime.RimeCreateSession();
+        var session = Rime.CreateSession();
         //Rime.RimeSelectSchema(session, list.list[0].name);
 
         Console.WriteLine("Start input");
         while (true)
         {
             var key = Console.ReadLine();
-            var res = Rime.RimeSimulateKeySequence(session, key);
+            var res = Rime.SimulateKeySequence(session, key);
             if (!res)
             {
                 Console.WriteLine("Error key input");
             }
             else
             {
-                var status = new RimeStatus();
-                status.data_size = Marshal.SizeOf(status) - sizeof(int);
-
-                if (Rime.RimeGetCommit(session, out var  commit))
+                if (Rime.GetCommit(session, out var commit))
                 {
-                    Console.WriteLine("commit: " + commit.text);
+                    Console.WriteLine("commit: " + commit!.Value.text);
                 }
 
-                if (Rime.RimeGetStatus(session, ref status))
+                if (Rime.GetStatus(session, out var status))
                 {
-                    PrintStatus(status);
+                    PrintStatus((RimeStatus)status!);
                 }
 
                 if (Rime.RimeGetContext(session, out var context))
                 {
-                    PrintContext(context);
+                    PrintContext((RimeContext)context!);
                 }
 
-                Rime.RimeHighlightCandidate(session, 1);
+                Rime.HighlightCandidate(session, 1);
             }
         }
     }
