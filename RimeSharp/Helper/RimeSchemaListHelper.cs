@@ -9,7 +9,7 @@ public static class RimeSchemaListHelper
     {
         public long size;
 
-        public IntPtr list; 
+        public IntPtr list;
     }
 
     public static RimeSchemaList MarshalFromIntPtr(IntPtr ptr)

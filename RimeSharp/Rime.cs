@@ -129,7 +129,7 @@ public static partial class Rime
         s_rimeApi.cleanup_all_sessions();
     }
 
-    public static bool ProcessKey(IntPtr session_id, int keycode, int mask) 
+    public static bool ProcessKey(IntPtr session_id, int keycode, int mask)
     {
         return s_rimeApi.process_key(session_id, keycode, mask);
     }
@@ -163,7 +163,7 @@ public static partial class Rime
         Marshal.StructureToPtr(context1, pnt, false);
         var res = s_rimeApi.get_context(session_id, pnt);
         context = res ? RimeContextHelper.MarshalFromIntPtr(pnt) : null;
-        if(res) s_rimeApi.free_context(pnt);
+        if (res) s_rimeApi.free_context(pnt);
         Marshal.FreeHGlobal(pnt);
         return res;
     }
@@ -540,7 +540,7 @@ public static partial class Rime
         }
     }
 
-    public static bool ConfigSetDouble(RimeConfig config, string key, double    value)
+    public static bool ConfigSetDouble(RimeConfig config, string key, double value)
     {
         using var buffer = new Utf8Buffer(key);
         var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());

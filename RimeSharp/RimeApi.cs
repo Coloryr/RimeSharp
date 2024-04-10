@@ -2,7 +2,7 @@
 
 namespace RimeSharp;
 
-public struct RimeApi
+internal struct RimeApi
 {
     public delegate void DTypeVoid();
     public delegate void DTypeVoid1(IntPtr ptr);
@@ -35,7 +35,7 @@ public struct RimeApi
     public delegate ulong DTypeSize(IntPtr ptr);
     public delegate ulong DTypeSize1(IntPtr ptr, IntPtr text);
 
-    public delegate RimeStringSlice DTypeStringSlice(IntPtr ptr, IntPtr text,bool b1, bool b2);
+    public delegate RimeStringSlice DTypeStringSlice(IntPtr ptr, IntPtr text, bool b1, bool b2);
 
     [MarshalAs(UnmanagedType.I4)]
     public int data_size;

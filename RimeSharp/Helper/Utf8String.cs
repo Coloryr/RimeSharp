@@ -1,6 +1,6 @@
-﻿using System.Text;
+﻿using System.Buffers;
 using System.Runtime.InteropServices;
-using System.Buffers;
+using System.Text;
 
 namespace RimeSharp.Helper;
 
