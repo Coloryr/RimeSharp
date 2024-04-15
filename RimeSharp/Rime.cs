@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace RimeSharp;
 
-
 public delegate void RimeNotificationHandler(IntPtr context_object, IntPtr session_id, [MarshalAs(UnmanagedType.LPUTF8Str)] string message_type, [MarshalAs(UnmanagedType.LPUTF8Str)] string message_value);
 
 public static partial class Rime
@@ -18,6 +17,8 @@ public static partial class Rime
 
     public static RimeTraits Init(string dir, RimeNotificationHandler handler)
     {
+        handler.Invoke(0, 0, "RimeSharp", $"Init start, load dll: {LibName} version: {Version}");
+
         if (!dir.EndsWith('\\') && !dir.EndsWith('/'))
         {
             dir += "/";
@@ -45,6 +46,10 @@ public static partial class Rime
         Marshal.StructureToPtr(traits, pnt, false);
 
         var api = RimeGetApi();
+        if (api == 0)
+        {
+            throw new Exception("Can not get rime api");
+        }
         s_rimeApi = Marshal.PtrToStructure<RimeApi>(api);
         s_rimeApi.setup(pnt);
         s_rimeApi.set_notification_handler(handler, 0);
