@@ -180,7 +180,7 @@ public static partial class Rime
         var pnt = Marshal.AllocHGlobal(Marshal.SizeOf(context1));
         Marshal.StructureToPtr(context1, pnt, false);
         var res = s_rimeApi.get_status(session_id, pnt);
-        status = res ? context1 : null;
+        status = res ? Marshal.PtrToStructure<RimeStatus>(pnt) : null;
         if (res) s_rimeApi.free_status(pnt);
         Marshal.FreeHGlobal(pnt);
         return res;
