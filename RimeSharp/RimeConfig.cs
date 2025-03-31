@@ -5,5 +5,5 @@ namespace RimeSharp;
 [StructLayout(LayoutKind.Sequential)]
 public struct RimeConfig
 {
-    public IntPtr ptr;
+    public IntPtr Ptr;
 }

@@ -6,10 +6,10 @@ namespace RimeSharp;
 public struct RimeSchemaListItem
 {
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string schema_id;
+    public string SchemaId;
 
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string name;
+    public string Name;
 
-    public IntPtr reserved;
+    public IntPtr Reserved;
 }

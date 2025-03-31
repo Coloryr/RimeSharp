@@ -5,10 +5,10 @@ namespace RimeSharp;
 [StructLayout(LayoutKind.Sequential)]
 public struct RimeComposition
 {
-    public int length;
-    public int cursor_pos;
-    public int sel_start;
-    public int sel_end;
+    public int Length;
+    public int CursorPos;
+    public int SelectStart;
+    public int SelectEnd;
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string preedit;
+    public string Preedit;
 }

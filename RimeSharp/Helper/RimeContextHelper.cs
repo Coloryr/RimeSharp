@@ -7,76 +7,79 @@ internal class RimeContextHelper
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct RimeContextIn
     {
-        public int data_size;
+        public readonly int DataSize;
         // v0.9
-        public RimeComposition composition;
-        public RimeMenuIn menu;
+        public RimeComposition Composition;
+        public RimeMenuIn Menu;
         // v0.9.2
         [MarshalAs(UnmanagedType.LPUTF8Str)]
-        public string commit_text_preview;
-        public IntPtr select_labels;
+        public string CommitTextPreview;
+        public IntPtr SelectLabels;
+
+        public RimeContextIn()
+        {
+            DataSize = Marshal.SizeOf<RimeContextIn>() - sizeof(int);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct RimeMenuIn
     {
-        public int page_size;
-        public int page_no;
-        public bool is_last_page;
-        public int highlighted_candidate_index;
-        public int num_candidates;
+        public int PageSize;
+        public int PageNo;
+        public bool IsLastPage;
+        public int HighlightedCandidateIndex;
+        public int NumCandidates;
         /// <summary>
         /// RimeCandidate*
         /// </summary>
-        public IntPtr candidates;
+        public IntPtr Candidates;
         [MarshalAs(UnmanagedType.LPUTF8Str)]
-        public string select_keys;
+        public string SelectKeys;
     }
 
-    public static RimeContext MarshalFromIntPtr(IntPtr ptr)
+    public static RimeContext MarshalFromIntPtr(RimeContextIn list)
     {
-        var list = Marshal.PtrToStructure<RimeContextIn>(ptr);
-
         var context = new RimeContext
         {
-            data_size = list.data_size,
-            composition = list.composition
+            DataSize = list.DataSize,
+            Composition = list.Composition
         };
-        context.menu.page_size = list.menu.page_size;
-        context.menu.page_no = list.menu.page_no;
-        context.menu.is_last_page = list.menu.is_last_page;
-        context.menu.highlighted_candidate_index = list.menu.highlighted_candidate_index;
-        context.menu.num_candidates = list.menu.num_candidates;
-        context.menu.select_keys = list.menu.select_keys;
+        context.Menu.PageSize = list.Menu.PageSize;
+        context.Menu.PageNo = list.Menu.PageNo;
+        context.Menu.IsLastPage = list.Menu.IsLastPage;
+        context.Menu.HighlightedCandidateIndex = list.Menu.HighlightedCandidateIndex;
+        context.Menu.NumCandidates = list.Menu.NumCandidates;
+        context.Menu.SelectKeys = list.Menu.SelectKeys;
 
-        if (context.menu.num_candidates > 0 && list.menu.candidates != IntPtr.Zero)
+        if (context.Menu.NumCandidates > 0 && list.Menu.Candidates != IntPtr.Zero)
         {
-            var array = new RimeCandidate[list.menu.num_candidates];
+            var array = new RimeCandidate[list.Menu.NumCandidates];
 
-            var current = list.menu.candidates;
+            var current = list.Menu.Candidates;
             var itemSize = Marshal.SizeOf(typeof(RimeCandidate));
-            for (var i = 0; i < list.menu.num_candidates; i++)
+            for (var i = 0; i < list.Menu.NumCandidates; i++)
             {
                 array[i] = Marshal.PtrToStructure<RimeCandidate>(current);
                 current = IntPtr.Add(current, itemSize);
             }
 
-            context.menu.candidates = array;
+            context.Menu.Candidates = array;
         }
 
-        if (context.menu.page_size > 0 && list.select_labels != IntPtr.Zero)
+        if (context.Menu.PageSize > 0 && list.SelectLabels != IntPtr.Zero)
         {
-            var array = new string[context.menu.page_size];
+            var array = new string[context.Menu.PageSize];
 
-            var current = list.menu.candidates;
+            var current = list.Menu.Candidates;
             var itemSize = Marshal.SizeOf(typeof(RimeCandidate));
-            for (var i = 0; i < list.menu.num_candidates; i++)
+            for (var i = 0; i < list.Menu.NumCandidates; i++)
             {
                 array[i] = Marshal.PtrToStringUTF8(current) ?? "";
                 current = IntPtr.Add(current, itemSize);
             }
 
-            context.select_labels = array;
+            context.SelectLabels = array;
         }
 
         return context;

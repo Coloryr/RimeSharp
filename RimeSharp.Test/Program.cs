@@ -7,30 +7,30 @@ internal class Program
 {
     static void PrintStatus(RimeStatus status)
     {
-        Console.WriteLine($"schema: {status.schema_id} / {status.schema_name}");
+        Console.WriteLine($"schema: {status.SchemaId} / {status.SchemaName}");
         Console.Write("status: ");
-        if (status.is_disabled)
+        if (status.IsDisabled)
             Console.Write("disabled ");
-        if (status.is_composing)
+        if (status.IsComposing)
             Console.Write("composing ");
-        if (status.is_ascii_mode)
+        if (status.IsAsciiMode)
             Console.Write("ascii ");
-        if (status.is_full_shape)
+        if (status.IsFullShape)
             Console.Write("full_shape ");
-        if (status.is_simplified)
+        if (status.IsSimplified)
             Console.Write("simplified ");
         Console.WriteLine();
     }
 
     static void PrintComposition(RimeComposition composition)
     {
-        string preedit = composition.preedit;
+        string preedit = composition.Preedit;
         if (preedit == null)
             return;
         int len = preedit.Length;
-        int start = composition.sel_start;
-        int end = composition.sel_end;
-        int cursor = composition.cursor_pos;
+        int start = composition.SelectStart;
+        int end = composition.SelectEnd;
+        int cursor = composition.CursorPos;
         for (int i = 0; i <= len; ++i)
         {
             if (start < end)
@@ -54,27 +54,27 @@ internal class Program
 
     static void PrintMenu(RimeMenu menu)
     {
-        if (menu.num_candidates == 0)
+        if (menu.NumCandidates == 0)
             return;
-        Console.WriteLine($"page: {menu.page_no + 1}{(menu.is_last_page ? '$' : ' ')} (of size {menu.page_size})");
-        for (int i = 0; i < menu.num_candidates; ++i)
+        Console.WriteLine($"page: {menu.PageNo + 1}{(menu.IsLastPage ? '$' : ' ')} (of size {menu.PageSize})");
+        for (int i = 0; i < menu.NumCandidates; ++i)
         {
-            bool highlighted = i == menu.highlighted_candidate_index;
-            Console.WriteLine($"{i + 1}. {(highlighted ? '[' : ' ')}{menu.candidates[i].text}{(highlighted ? ']' : ' ')}{(menu.candidates[i].comment != null ? menu.candidates[i].comment : "")}");
+            bool highlighted = i == menu.HighlightedCandidateIndex;
+            Console.WriteLine($"{i + 1}. {(highlighted ? '[' : ' ')}{menu.Candidates[i].Text}{(highlighted ? ']' : ' ')}{(menu.Candidates[i].Comment != null ? menu.Candidates[i].Comment : "")}");
         }
     }
 
     static void PrintContext(RimeContext context)
     {
-        if (context.composition.length > 0 || context.menu.num_candidates > 0)
+        if (context.Composition.Length > 0 || context.Menu.NumCandidates > 0)
         {
-            PrintComposition(context.composition);
+            PrintComposition(context.Composition);
         }
         else
         {
             Console.WriteLine("(not composing)");
         }
-        PrintMenu(context.menu);
+        PrintMenu(context.Menu);
     }
 
     static unsafe void Main(string[] args)

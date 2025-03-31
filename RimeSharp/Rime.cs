@@ -8,7 +8,7 @@ public delegate void RimeNotificationHandler(IntPtr context_object, IntPtr sessi
 public static partial class Rime
 {
     public const string LibName = "rime";
-    public const string Version = "1.11.0";
+    public const string Version = "1.13.1";
 
     private static RimeApi s_rimeApi;
 
@@ -17,50 +17,57 @@ public static partial class Rime
 
     public static RimeTraits Init(string dir, RimeNotificationHandler handler)
     {
-        handler.Invoke(0, 0, "RimeSharp", $"Init start, load dll: {LibName} version: {Version}");
+        handler.Invoke(0, 0, "RimeSharp", $"RimeSharp version: {Version}");
+        handler.Invoke(0, 0, "RimeSharp", $"Init start, load dll: {LibName}");
 
-        if (!dir.EndsWith('\\') && !dir.EndsWith('/'))
+        var dataDir = Path.Combine(dir, "data");
+        var logDir = Path.Combine(dir, "log");
+        var buildDir = Path.Combine(dir, "build");
+
+        Directory.CreateDirectory(dataDir);
+        Directory.CreateDirectory(logDir);
+        Directory.CreateDirectory(buildDir);
+
+        var traits = new RimeTraits
         {
-            dir += "/";
-        }
-        var dir1 = Path.GetFullPath(dir + "data/");
-        var dir2 = Path.GetFullPath(dir + "log/");
-        var dir3 = Path.GetFullPath(dir + "build/");
+            AppName = "RimeSharp",
+            MinLogLevel = 0,
+            SharedDataDir = dataDir,
+            UserDataDir = dataDir,
+            LogDir = logDir,
+            PrebuiltDataDir = buildDir,
+            StagingDir = buildDir
+        };
 
-        Directory.CreateDirectory(dir1);
-        Directory.CreateDirectory(dir2);
-        Directory.CreateDirectory(dir3);
+        IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(traits));
 
-        var traits = new RimeTraits();
-
-        traits.data_size = Marshal.SizeOf(traits) - sizeof(int);
-        traits.app_name = "RimeSharp";
-        traits.min_log_level = 0;
-
-        traits.shared_data_dir = traits.user_data_dir = dir1;
-        traits.log_dir = dir2;
-        traits.prebuilt_data_dir = traits.staging_dir = dir3;
-
-        var pnt = Marshal.AllocHGlobal(Marshal.SizeOf(traits));
-
-        Marshal.StructureToPtr(traits, pnt, false);
-
-        var api = RimeGetApi();
-        if (api == 0)
+        try
         {
-            throw new Exception("Can not get rime api");
+            Marshal.StructureToPtr(traits, ptr, false);
+
+            var api = RimeGetApi();
+            if (api == 0)
+            {
+                throw new Exception("Can not get rime api");
+            }
+            s_rimeApi = Marshal.PtrToStructure<RimeApi>(api);
+            s_rimeApi.setup(ptr);
+            s_rimeApi.set_notification_handler(handler, 0);
+            s_rimeApi.initialize(ptr);
+            if (s_rimeApi.start_maintenance(true))
+            {
+                s_rimeApi.join_maintenance_thread();
+            }
+
+            handler.Invoke(0, 0, "RimeSharp", $"Init end, load dll version: {Utf8Buffer.StringFromPtr(s_rimeApi.get_version())}");
+
+            traits = Marshal.PtrToStructure<RimeTraits>(ptr);
         }
-        s_rimeApi = Marshal.PtrToStructure<RimeApi>(api);
-        s_rimeApi.setup(pnt);
-        s_rimeApi.set_notification_handler(handler, 0);
-        s_rimeApi.initialize(pnt);
-        if (s_rimeApi.start_maintenance(true))
+        finally
         {
-            s_rimeApi.join_maintenance_thread();
+            Marshal.FreeHGlobal(ptr);
         }
 
-        traits = Marshal.PtrToStructure<RimeTraits>(pnt);
-        Marshal.FreeHGlobal(pnt);
         return traits;
     }
 
@@ -149,40 +156,28 @@ public static partial class Rime
 
     public static bool GetCommit(IntPtr session_id, out RimeCommit? commit)
     {
-        var context1 = new RimeCommit();
-        context1.data_size = Marshal.SizeOf(context1) - sizeof(int);
-        var pnt = Marshal.AllocHGlobal(Marshal.SizeOf(context1));
-        Marshal.StructureToPtr(context1, pnt, false);
-        var res = s_rimeApi.get_commit(session_id, pnt);
-        commit = res ? Marshal.PtrToStructure<RimeCommit>(pnt) : null;
-        if (res) s_rimeApi.free_commit(pnt);
-        Marshal.FreeHGlobal(pnt);
+        using var handel = new SafeHandel<RimeCommit>();
+        var res = s_rimeApi.get_commit(session_id, handel.Ptr);
+        commit = res ? handel.GetData() : null;
+        if (res) s_rimeApi.free_commit(handel.Ptr);
         return res;
     }
 
     public static bool RimeGetContext(IntPtr session_id, out RimeContext? context)
     {
-        var context1 = new RimeContextHelper.RimeContextIn();
-        context1.data_size = Marshal.SizeOf(context1) - sizeof(int);
-        var pnt = Marshal.AllocHGlobal(Marshal.SizeOf(context1));
-        Marshal.StructureToPtr(context1, pnt, false);
-        var res = s_rimeApi.get_context(session_id, pnt);
-        context = res ? RimeContextHelper.MarshalFromIntPtr(pnt) : null;
-        if (res) s_rimeApi.free_context(pnt);
-        Marshal.FreeHGlobal(pnt);
+        using var handel = new SafeHandel<RimeContextHelper.RimeContextIn>();
+        var res = s_rimeApi.get_context(session_id, handel.Ptr);
+        context = res ? RimeContextHelper.MarshalFromIntPtr(handel.GetData()) : null;
+        if (res) s_rimeApi.free_context(handel.Ptr);
         return res;
     }
 
     public static bool GetStatus(IntPtr session_id, out RimeStatus? status)
     {
-        var context1 = new RimeStatus();
-        context1.data_size = Marshal.SizeOf(context1) - sizeof(int);
-        var pnt = Marshal.AllocHGlobal(Marshal.SizeOf(context1));
-        Marshal.StructureToPtr(context1, pnt, false);
-        var res = s_rimeApi.get_status(session_id, pnt);
-        status = res ? Marshal.PtrToStructure<RimeStatus>(pnt) : null;
-        if (res) s_rimeApi.free_status(pnt);
-        Marshal.FreeHGlobal(pnt);
+        using var handel = new SafeHandel<RimeStatus>();
+        var res = s_rimeApi.get_status(session_id, handel.Ptr);
+        status = res ? handel.GetData() : null;
+        if (res) s_rimeApi.free_status(handel.Ptr);
         return res;
     }
 

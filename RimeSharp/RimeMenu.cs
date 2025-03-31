@@ -4,15 +4,15 @@ namespace RimeSharp;
 
 public unsafe struct RimeMenu
 {
-    public int page_size;
-    public int page_no;
-    public bool is_last_page;
-    public int highlighted_candidate_index;
-    public int num_candidates;
+    public int PageSize;
+    public int PageNo;
+    public bool IsLastPage;
+    public int HighlightedCandidateIndex;
+    public int NumCandidates;
     /// <summary>
     /// RimeCandidate*
     /// </summary>
-    public RimeCandidate[] candidates;
+    public RimeCandidate[] Candidates;
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string select_keys;
+    public string SelectKeys;
 }

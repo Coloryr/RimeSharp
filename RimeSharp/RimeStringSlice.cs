@@ -6,6 +6,7 @@ namespace RimeSharp;
 public struct RimeStringSlice
 {
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string str;
-    public long length;
+    public string Str;
+
+    public long Length;
 }

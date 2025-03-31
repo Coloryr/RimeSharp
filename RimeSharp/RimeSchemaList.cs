@@ -2,9 +2,9 @@
 
 public struct RimeSchemaList
 {
-    public long size;
+    public long Size;
     /// <summary>
     /// RimeSchemaListItem* list;
     /// </summary>
-    public RimeSchemaListItem[] list;
+    public RimeSchemaListItem[] List;
 }

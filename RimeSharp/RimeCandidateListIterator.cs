@@ -5,7 +5,7 @@ namespace RimeSharp;
 [StructLayout(LayoutKind.Sequential)]
 public struct RimeCandidateListIterator
 {
-    public IntPtr ptr;
-    public int index;
-    public RimeCandidate candidate;
+    public IntPtr Ptr;
+    public int Index;
+    public RimeCandidate Candidate;
 }

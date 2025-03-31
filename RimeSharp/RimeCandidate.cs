@@ -5,9 +5,9 @@ namespace RimeSharp;
 public struct RimeCandidate
 {
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string text;
+    public string Text;
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string comment;
+    public string Comment;
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string reserved;
+    public string Reserved;
 }

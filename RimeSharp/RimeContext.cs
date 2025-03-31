@@ -2,11 +2,12 @@
 
 public unsafe struct RimeContext
 {
-    public int data_size;
+    public int DataSize;
+
     // v0.9
-    public RimeComposition composition;
-    public RimeMenu menu;
+    public RimeComposition Composition;
+    public RimeMenu Menu;
     // v0.9.2
-    public string commit_text_preview;
-    public string[] select_labels;
+    public string CommitTextPreview;
+    public string[] SelectLabels;
 }

@@ -5,17 +5,23 @@ namespace RimeSharp;
 [StructLayout(LayoutKind.Sequential)]
 public struct RimeStatus
 {
-    public int data_size;
+    public readonly int DataSize;
+
     // v0.9
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string schema_id;
+    public string SchemaId;
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    public string schema_name;
-    public bool is_disabled;
-    public bool is_composing;
-    public bool is_ascii_mode;
-    public bool is_full_shape;
-    public bool is_simplified;
-    public bool is_traditional;
-    public bool is_ascii_punct;
+    public string SchemaName;
+    public bool IsDisabled;
+    public bool IsComposing;
+    public bool IsAsciiMode;
+    public bool IsFullShape;
+    public bool IsSimplified;
+    public bool IsTraditional;
+    public bool IsAsciiPunct;
+
+    public RimeStatus()
+    {
+        DataSize = Marshal.SizeOf<RimeStatus>() - sizeof(int);
+    }
 }
