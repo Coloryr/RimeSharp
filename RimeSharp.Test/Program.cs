@@ -57,7 +57,9 @@ internal class Program
         for (int i = 0; i < menu.NumCandidates; ++i)
         {
             bool highlighted = i == menu.HighlightedCandidateIndex;
-            Console.WriteLine($"{i + 1}. {(highlighted ? '[' : ' ')}{menu.Candidates[i].Text}{(highlighted ? ']' : ' ')}{(menu.Candidates[i].Comment != null ? menu.Candidates[i].Comment : "")}");
+            Console.WriteLine($"{i + 1}. {(highlighted ? '[' : ' ')}" +
+                $"{menu.Candidates[i].Text}{(highlighted ? ']' : ' ')}" +
+                $"{menu.Candidates[i].Comment ?? ""}");
         }
     }
 
@@ -87,6 +89,10 @@ internal class Program
         while (true)
         {
             var key = Console.ReadLine();
+            if (key == null)
+            {
+                return;
+            }
             var res = Rime.SimulateKeySequence(session, key);
             if (!res)
             {
