@@ -3,7 +3,9 @@ using RimeSharp.Helper;
 
 namespace RimeSharp;
 
-public delegate void RimeNotificationHandler(IntPtr context_object, IntPtr session_id, [MarshalAs(UnmanagedType.LPUTF8Str)] string message_type, [MarshalAs(UnmanagedType.LPUTF8Str)] string message_value);
+public delegate void RimeNotificationHandler(IntPtr context_object, IntPtr session_id, 
+    [MarshalAs(UnmanagedType.LPUTF8Str)] string message_type, 
+    [MarshalAs(UnmanagedType.LPUTF8Str)] string message_value);
 
 public static partial class Rime
 {
@@ -28,7 +30,7 @@ public static partial class Rime
         Directory.CreateDirectory(logDir);
         Directory.CreateDirectory(buildDir);
 
-        var traits = new RimeTraits
+        using var handel = new SafeHandel<RimeTraits>(new()
         {
             AppName = "RimeSharp",
             MinLogLevel = 0,
@@ -37,38 +39,22 @@ public static partial class Rime
             LogDir = logDir,
             PrebuiltDataDir = buildDir,
             StagingDir = buildDir
-        };
-
-        IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(traits));
-
-        try
+        });
+        var api = RimeGetApi();
+        if (api == 0)
         {
-            Marshal.StructureToPtr(traits, ptr, false);
-
-            var api = RimeGetApi();
-            if (api == 0)
-            {
-                throw new Exception("Can not get rime api");
-            }
-            s_rimeApi = Marshal.PtrToStructure<RimeApi>(api);
-            s_rimeApi.setup(ptr);
-            s_rimeApi.set_notification_handler(handler, 0);
-            s_rimeApi.initialize(ptr);
-            if (s_rimeApi.start_maintenance(true))
-            {
-                s_rimeApi.join_maintenance_thread();
-            }
-
-            handler.Invoke(0, 0, "RimeSharp", $"Init end, load dll version: {Utf8Buffer.StringFromPtr(s_rimeApi.get_version())}");
-
-            traits = Marshal.PtrToStructure<RimeTraits>(ptr);
+            throw new Exception("Can not get rime api");
         }
-        finally
+        s_rimeApi = Marshal.PtrToStructure<RimeApi>(api);
+        s_rimeApi.setup(handel.Ptr);
+        s_rimeApi.set_notification_handler(handler, 0);
+        s_rimeApi.initialize(handel.Ptr);
+        if (s_rimeApi.start_maintenance(true))
         {
-            Marshal.FreeHGlobal(ptr);
+            s_rimeApi.join_maintenance_thread();
         }
-
-        return traits;
+        handler.Invoke(0, 0, "RimeSharp", $"Init end, load dll version: {Utf8Buffer.StringFromPtr(s_rimeApi.get_version())}");
+        return handel.GetData();
     }
 
     public static void Close()
@@ -83,10 +69,8 @@ public static partial class Rime
 
     public static void DeployerInitialize(RimeTraits traits)
     {
-        var pnt = Marshal.AllocHGlobal(Marshal.SizeOf(traits));
-        Marshal.StructureToPtr(traits, pnt, false);
-        s_rimeApi.deployer_initialize(pnt);
-        Marshal.FreeHGlobal(pnt);
+        using var handel = new SafeHandel<RimeTraits>(traits);
+        s_rimeApi.deployer_initialize(handel.Ptr);
     }
 
     public static bool Prebuild()
