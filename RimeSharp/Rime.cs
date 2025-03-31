@@ -3,8 +3,8 @@ using RimeSharp.Helper;
 
 namespace RimeSharp;
 
-public delegate void RimeNotificationHandler(IntPtr context_object, IntPtr session_id, 
-    [MarshalAs(UnmanagedType.LPUTF8Str)] string message_type, 
+public delegate void RimeNotificationHandler(IntPtr context_object, IntPtr session_id,
+    [MarshalAs(UnmanagedType.LPUTF8Str)] string message_type,
     [MarshalAs(UnmanagedType.LPUTF8Str)] string message_value);
 
 public static partial class Rime

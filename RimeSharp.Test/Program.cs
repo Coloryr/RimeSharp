@@ -1,7 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
-
-namespace RimeSharp.Test;
+﻿namespace RimeSharp.Test;
 
 internal class Program
 {
