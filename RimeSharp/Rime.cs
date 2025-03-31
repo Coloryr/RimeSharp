@@ -1,5 +1,5 @@
-﻿using RimeSharp.Helper;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using RimeSharp.Helper;
 
 namespace RimeSharp;
 
@@ -203,10 +203,9 @@ public static partial class Rime
     public static bool GetProperty(IntPtr session_id, string prop, out string? value)
     {
         using var buffer = new Utf8Buffer(prop);
-        var ptr = Marshal.AllocHGlobal(1024);
-        var res = s_rimeApi.get_property(session_id, buffer.DangerousGetHandle(), ptr, 1024);
-        value = res ? Utf8Buffer.StringFromPtr(ptr) : null;
-        Marshal.FreeHGlobal(ptr);
+        using var handel = new SafePtrBuffer(1024);
+        var res = s_rimeApi.get_property(session_id, buffer.DangerousGetHandle(), handel.Ptr, (ulong)handel.Size);
+        value = res ? Utf8Buffer.StringFromPtr(handel.Ptr) : null;
         return res;
     }
 
@@ -217,20 +216,18 @@ public static partial class Rime
     /// <returns></returns>
     public static bool GetSchemaList(out RimeSchemaList? list)
     {
-        var pnt = Marshal.AllocHGlobal(Marshal.SizeOf<RimeSchemaListHelper.RimeSchemaListIn>());
-        var res = s_rimeApi.get_schema_list(pnt);
-        list = res ? RimeSchemaListHelper.MarshalFromIntPtr(pnt) : null;
-        s_rimeApi.free_schema_list(pnt);
-        Marshal.FreeHGlobal(pnt);
+        using var handel = new SafeHandel<RimeSchemaListHelper.RimeSchemaListIn>();
+        var res = s_rimeApi.get_schema_list(handel.Ptr);
+        list = res ? RimeSchemaListHelper.MarshalFromIntPtr(handel.Ptr) : null;
+        s_rimeApi.free_schema_list(handel.Ptr);
         return res;
     }
 
     public static bool GetCurrentSchema(IntPtr session_id, out string? schema_id)
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-        var res = s_rimeApi.get_current_schema(session_id, ptr, 1024);
-        schema_id = res ? Utf8Buffer.StringFromPtr(ptr) : null;
-        Marshal.FreeHGlobal(ptr);
+        using var handel = new SafePtrBuffer(1024);
+        var res = s_rimeApi.get_current_schema(session_id, handel.Ptr, (ulong)handel.Size);
+        schema_id = res ? Utf8Buffer.StringFromPtr(handel.Ptr) : null;
         return res;
     }
 
@@ -243,145 +240,100 @@ public static partial class Rime
     public static bool SchemaOpen(string schema_id, out RimeConfig? config)
     {
         using var buffer = new Utf8Buffer(schema_id);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var res = s_rimeApi.schema_open(buffer.DangerousGetHandle(), ptr);
-        config = res ? Marshal.PtrToStructure<RimeConfig>(ptr) : null;
-        Marshal.FreeHGlobal(ptr);
+        using var handel = new SafeHandel<RimeConfig>();
+        var res = s_rimeApi.schema_open(buffer.DangerousGetHandle(), handel.Ptr);
+        config = res ? handel.GetData() : null;
         return res;
     }
 
     public static bool ConfigOpen(string config_id, out RimeConfig? config)
     {
         using var buffer = new Utf8Buffer(config_id);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var res = s_rimeApi.config_open(buffer.DangerousGetHandle(), ptr);
-        config = res ? Marshal.PtrToStructure<RimeConfig>(ptr) : null;
-        Marshal.FreeHGlobal(ptr);
+        using var handel = new SafeHandel<RimeConfig>();
+        var res = s_rimeApi.config_open(buffer.DangerousGetHandle(), handel.Ptr);
+        config = res ? handel.GetData() : null;
         return res;
     }
 
     public static bool ConfigClose(RimeConfig config)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_close(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_close(handel.Ptr);
     }
 
     public static bool ConfigGetBool(RimeConfig config, string key, out bool? value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var ptr1 = Marshal.AllocHGlobal(sizeof(bool));
-        Marshal.StructureToPtr(config, ptr, false);
-        var res = s_rimeApi.config_get_bool(ptr, buffer.DangerousGetHandle(), ptr1);
-        value = res ? Marshal.ReadByte(ptr1) != 0 : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<bool>();
+        var res = s_rimeApi.config_get_bool(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr);
+        value = res ? handel1.GetData() : null;
         return res;
     }
 
     public static bool ConfigGetInt(RimeConfig config, string key, out int? value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var ptr1 = Marshal.AllocHGlobal(sizeof(int));
-        Marshal.StructureToPtr(config, ptr, false);
-        var res = s_rimeApi.config_get_int(ptr, buffer.DangerousGetHandle(), ptr1);
-        value = res ? Marshal.ReadInt32(ptr1) : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<int>();
+        var res = s_rimeApi.config_get_int(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr);
+        value = res ? handel1.GetData() : null;
         return res;
     }
 
     public static bool ConfigGetDouble(RimeConfig config, string key, out double? value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var ptr1 = Marshal.AllocHGlobal(sizeof(double));
-        Marshal.StructureToPtr(config, ptr, false);
-        var res = s_rimeApi.config_get_double(ptr, buffer.DangerousGetHandle(), ptr1);
-        value = res ? Marshal.ReadInt32(ptr1) : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<double>();
+        var res = s_rimeApi.config_get_double(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr);
+        value = res ? handel1.GetData() : null;
         return res;
     }
 
     public static bool ConfigGetString(RimeConfig config, string key, out string? value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var ptr1 = Marshal.AllocHGlobal(1024);
-        Marshal.StructureToPtr(config, ptr, false);
-        var res = s_rimeApi.config_get_string(ptr, buffer.DangerousGetHandle(), ptr1, 1024);
-        value = res ? Utf8Buffer.StringFromPtr(ptr1) : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafePtrBuffer(1024);
+        var res = s_rimeApi.config_get_string(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr, (ulong)handel1.Size);
+        value = res ? Utf8Buffer.StringFromPtr(handel1.Ptr) : null;
         return res;
     }
 
     public static bool ConfigUpdateSignature(RimeConfig config, string signer)
     {
         using var buffer = new Utf8Buffer(signer);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_update_signature(ptr, buffer.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_update_signature(handel.Ptr, buffer.DangerousGetHandle());
     }
 
     public static bool ConfigBeginMap(RimeConfig config, string key, out RimeConfigIterator? iterator)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfigIterator>());
-        var ptr1 = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr1, false);
-        var res = s_rimeApi.config_begin_map(ptr, ptr1, buffer.DangerousGetHandle());
-        iterator = res ? Marshal.PtrToStructure<RimeConfigIterator>(ptr) : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
-
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<RimeConfigIterator>();
+        var res = s_rimeApi.config_begin_map(handel1.Ptr, handel.Ptr, buffer.DangerousGetHandle());
+        iterator = res ? handel1.GetData() : null;
         return res;
     }
 
     public static bool ConfigNext(ref RimeConfigIterator iterator)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfigIterator>());
-        Marshal.StructureToPtr(iterator, ptr, false);
-        var res = s_rimeApi.config_next(ptr);
+        using var handel = new SafeHandel<RimeConfigIterator>(iterator);
+        var res = s_rimeApi.config_next(handel.Ptr);
         if (res)
         {
-            iterator = Marshal.PtrToStructure<RimeConfigIterator>(ptr);
+            iterator = handel.GetData();
         }
-
-        Marshal.FreeHGlobal(ptr);
 
         return res;
     }
 
     public static void ConfigEnd(RimeConfigIterator iterator)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfigIterator>());
-        Marshal.StructureToPtr(iterator, ptr, false);
-        try
-        {
-            s_rimeApi.config_end(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfigIterator>(iterator);
+        s_rimeApi.config_end(handel.Ptr);
     }
 
     public static bool SimulateKeySequence(IntPtr session_id, string key_sequence)
@@ -392,16 +344,8 @@ public static partial class Rime
 
     public static bool RegisterModule(RimeModule module)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeModule>());
-        Marshal.StructureToPtr(module, ptr, false);
-        try
-        {
-            return s_rimeApi.register_module(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeModule>(module);
+        return s_rimeApi.register_module(handel.Ptr);
     }
 
     public static RimeModule? FindModule(string module_name)
@@ -424,47 +368,23 @@ public static partial class Rime
 
     public static string? GetSharedDataDir()
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-
-        try
-        {
-            s_rimeApi.get_shared_data_dir_s(ptr, 1024);
-            return Utf8Buffer.StringFromPtr(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafePtrBuffer(1024);
+        s_rimeApi.get_shared_data_dir_s(handel.Ptr, (ulong)handel.Size);
+        return Utf8Buffer.StringFromPtr(handel.Ptr);
     }
 
     public static string? GetUserDataDir()
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-
-        try
-        {
-            s_rimeApi.get_user_data_dir_s(ptr, 1024);
-            return Utf8Buffer.StringFromPtr(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafePtrBuffer(1024);
+        s_rimeApi.get_user_data_dir_s(handel.Ptr, (ulong)handel.Size);
+        return Utf8Buffer.StringFromPtr(handel.Ptr);
     }
 
     public static string? GetSyncDir()
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-
-        try
-        {
-            s_rimeApi.get_sync_dir_s(ptr, 1024);
-            return Utf8Buffer.StringFromPtr(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafePtrBuffer(1024);
+        s_rimeApi.get_sync_dir_s(handel.Ptr, (ulong)handel.Size);
+        return Utf8Buffer.StringFromPtr(handel.Ptr);
     }
 
     public static string? GetUserId()
@@ -474,209 +394,108 @@ public static partial class Rime
 
     public static string? GetUserDataSyncDir()
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-
-        try
-        {
-            s_rimeApi.get_user_data_sync_dir(ptr, 1024);
-            return Utf8Buffer.StringFromPtr(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafePtrBuffer(1024);
+        s_rimeApi.get_user_data_sync_dir(handel.Ptr, (ulong)handel.Size);
+        return Utf8Buffer.StringFromPtr(handel.Ptr);
     }
 
     public static bool ConfigInit(out RimeConfig? config)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var res = s_rimeApi.config_init(ptr);
-        config = res ? Marshal.PtrToStructure<RimeConfig>(ptr) : null;
+        using var handel = new SafeHandel<RimeConfig>();
+        var res = s_rimeApi.config_init(handel.Ptr);
+        config = res ? handel.GetData() : null;
         return res;
     }
 
     public static bool ConfigLoadString(RimeConfig config, string yaml)
     {
         using var buffer = new Utf8Buffer(yaml);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_load_string(ptr, buffer.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_load_string(handel.Ptr, buffer.DangerousGetHandle());
     }
 
     public static bool ConfigSetBool(RimeConfig config, string key, bool value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_set_bool(ptr, buffer.DangerousGetHandle(), value);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_set_bool(handel.Ptr, buffer.DangerousGetHandle(), value);
     }
 
     public static bool ConfigSetInt(RimeConfig config, string key, int value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_set_int(ptr, buffer.DangerousGetHandle(), value);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_set_int(handel.Ptr, buffer.DangerousGetHandle(), value);
     }
 
     public static bool ConfigSetDouble(RimeConfig config, string key, double value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_set_double(ptr, buffer.DangerousGetHandle(), value);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_set_double(handel.Ptr, buffer.DangerousGetHandle(), value);
     }
 
     public static bool ConfigSetString(RimeConfig config, string key, string value)
     {
         using var buffer = new Utf8Buffer(key);
         using var buffer1 = new Utf8Buffer(value);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        try
-        {
-            return s_rimeApi.config_set_string(ptr, buffer.DangerousGetHandle(), buffer1.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_set_string(handel.Ptr, buffer.DangerousGetHandle(), buffer1.DangerousGetHandle());
     }
 
     public static bool ConfigGetItem(RimeConfig config, string key, out RimeConfig? value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        var ptr1 = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var res = s_rimeApi.config_get_item(ptr, buffer.DangerousGetHandle(), ptr1);
-        value = res ? Marshal.PtrToStructure<RimeConfig>(ptr1) : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
-
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<RimeConfig>();
+        var res = s_rimeApi.config_get_item(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr);
+        value = res ? handel1.GetData() : null;
         return res;
     }
 
     public static bool ConfigSetItem(RimeConfig config, string key, RimeConfig value)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        var ptr1 = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(value, ptr1, false);
-        try
-        {
-            return s_rimeApi.config_set_item(ptr, buffer.DangerousGetHandle(), ptr1);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-            Marshal.FreeHGlobal(ptr1);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<RimeConfig>(value);
+        return s_rimeApi.config_set_item(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr);
     }
 
     public static bool ConfigClear(RimeConfig config, string key)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-
-        try
-        {
-            return s_rimeApi.config_clear(ptr, buffer.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_clear(handel.Ptr, buffer.DangerousGetHandle());
     }
 
     public static bool ConfigCreateList(RimeConfig config, string key)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-
-        try
-        {
-            return s_rimeApi.config_create_list(ptr, buffer.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_create_list(handel.Ptr, buffer.DangerousGetHandle());
     }
 
     public static bool ConfigCreateMap(RimeConfig config, string key)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-
-        try
-        {
-            return s_rimeApi.config_create_map(ptr, buffer.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_create_map(handel.Ptr, buffer.DangerousGetHandle());
     }
 
     public static ulong ConfigListSize(RimeConfig config, string key)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-
-        try
-        {
-            return s_rimeApi.config_list_size(ptr, buffer.DangerousGetHandle());
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeConfig>(config);
+        return s_rimeApi.config_list_size(handel.Ptr, buffer.DangerousGetHandle());
     }
 
     public static bool ConfigBeginList(RimeConfig config, string key, out RimeConfigIterator? iterator)
     {
         using var buffer = new Utf8Buffer(key);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        Marshal.StructureToPtr(config, ptr, false);
-        var ptr1 = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfigIterator>());
-        var res = s_rimeApi.config_begin_list(ptr, buffer.DangerousGetHandle(), ptr1);
-        iterator = res ? Marshal.PtrToStructure<RimeConfigIterator>(ptr1) : null;
-        Marshal.FreeHGlobal(ptr);
-        Marshal.FreeHGlobal(ptr1);
+        using var handel = new SafeHandel<RimeConfig>(config);
+        using var handel1 = new SafeHandel<RimeConfigIterator>();
+        var res = s_rimeApi.config_begin_list(handel.Ptr, buffer.DangerousGetHandle(), handel1.Ptr);
+        iterator = res ? handel1.GetData() : null;
         return res;
     }
 
@@ -713,89 +532,57 @@ public static partial class Rime
     public static bool CandidateListBegin(IntPtr session_id,
                                out RimeCandidateListIterator? iterator)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeCandidateListIterator>());
-        var res = s_rimeApi.candidate_list_begin(session_id, ptr);
-        iterator = res ? Marshal.PtrToStructure<RimeCandidateListIterator>(ptr) : null;
-
-        Marshal.FreeHGlobal(ptr);
-
+        using var handel = new SafeHandel<RimeCandidateListIterator>();
+        var res = s_rimeApi.candidate_list_begin(session_id, handel.Ptr);
+        iterator = res ? handel.GetData() : null;
         return res;
     }
     public static bool CandidateListNext(ref RimeCandidateListIterator iterator)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeCandidateListIterator>());
-        Marshal.StructureToPtr(iterator, ptr, false);
-        var res = s_rimeApi.candidate_list_next(ptr);
+        using var handel = new SafeHandel<RimeCandidateListIterator>(iterator);
+        var res = s_rimeApi.candidate_list_next(handel.Ptr);
         if (res)
         {
-            iterator = Marshal.PtrToStructure<RimeCandidateListIterator>(ptr);
+            iterator = handel.GetData();
         }
-
-        Marshal.FreeHGlobal(ptr);
-
         return res;
     }
     public static void CandidateListEnd(RimeCandidateListIterator iterator)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeCandidateListIterator>());
-        Marshal.StructureToPtr(iterator, ptr, false);
-        try
-        {
-            s_rimeApi.candidate_list_end(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafeHandel<RimeCandidateListIterator>(iterator);
+        s_rimeApi.candidate_list_end(handel.Ptr);
     }
 
     public static bool UserConfigOpen(string config_id, out RimeConfig? config)
     {
         using var buffer = new Utf8Buffer(config_id);
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeConfig>());
-        var res = s_rimeApi.user_config_open(buffer.DangerousGetHandle(), ptr);
-        config = res ? Marshal.PtrToStructure<RimeConfig>(ptr) : null;
-        Marshal.FreeHGlobal(ptr);
+        using var handel = new SafeHandel<RimeConfig>();
+        var res = s_rimeApi.user_config_open(buffer.DangerousGetHandle(), handel.Ptr);
+        config = res ? handel.GetData() : null;
         return res;
     }
 
     public static bool CandidateListFromIndex(IntPtr session_id, int index, out RimeCandidateListIterator? iterator)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf<RimeCandidateListIterator>());
-        var res = s_rimeApi.candidate_list_from_index(session_id, ptr, index);
-        iterator = res ? Marshal.PtrToStructure<RimeCandidateListIterator>(ptr) : null;
+        using var handel = new SafeHandel<RimeCandidateListIterator>();
+        var res = s_rimeApi.candidate_list_from_index(session_id, handel.Ptr, index);
+        iterator = res ? handel.GetData() : null;
 
         return res;
     }
 
     public static string? GetPrebuiltDataDir()
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-
-        try
-        {
-            s_rimeApi.get_prebuilt_data_dir_s(ptr, 1024);
-            return Utf8Buffer.StringFromPtr(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafePtrBuffer(1024);
+        s_rimeApi.get_prebuilt_data_dir_s(handel.Ptr, (ulong)handel.Size);
+        return Utf8Buffer.StringFromPtr(handel.Ptr);
     }
 
     public static string? GetStagingDir()
     {
-        var ptr = Marshal.AllocHGlobal(1024);
-
-        try
-        {
-            s_rimeApi.get_staging_dir_s(ptr, 1024);
-            return Utf8Buffer.StringFromPtr(ptr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
+        using var handel = new SafePtrBuffer(1024);
+        s_rimeApi.get_staging_dir_s(handel.Ptr, (ulong)handel.Size);
+        return Utf8Buffer.StringFromPtr(handel.Ptr);
     }
 
     public static void GetStateLabel(IntPtr session_id, string option_name, bool state)
