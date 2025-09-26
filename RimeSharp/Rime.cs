@@ -22,7 +22,7 @@ public static partial class Rime
         handler.Invoke(0, 0, "RimeSharp", $"RimeSharp version: {Version}");
         handler.Invoke(0, 0, "RimeSharp", $"Init start, load dll: {LibName}");
 
-        var dataDir = Path.Combine(dir, "数据");
+        var dataDir = Path.Combine(dir, "data");
         var logDir = Path.Combine(dir, "log");
         var buildDir = Path.Combine(dir, "build");
 
